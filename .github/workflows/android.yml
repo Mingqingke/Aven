@@ -1,0 +1,50 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest --no-daemon
+      - name: Build debug
+        run: ./gradlew assembleDebug --no-daemon
+      - name: Upload debug
+        uses: actions/upload-artifact@v4
+        with:
+          name: aven-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
+      - name: Decode keystore
+        if: startsWith(github.ref, 'refs/tags/')
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/aven-release.jks
+      - name: Write signing config
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          cat > keystore.properties <<PROPS
+          storeFile=app/aven-release.jks
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          PROPS
+      - name: Build release
+        if: startsWith(github.ref, 'refs/tags/')
+        run: ./gradlew assembleRelease --no-daemon
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/release/app-release.apk

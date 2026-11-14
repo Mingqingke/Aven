@@ -1,0 +1,20 @@
+{
+  "packageName": "com.aven.app",
+  "versionName": "1.0.5",
+  "versionCode": 6,
+  "releaseDate": "2026-11-13",
+  "changelog": [
+    "新增应用内更新中心",
+    "首页精简与分组调整",
+    "页面切换动画升级"
+  ],
+  "apkSize": 24716877,
+  "downloadUrls": [
+    "https://example.com/aven-1.0.5.apk"
+  ],
+  "sha256": "在这里填写 APK 的 SHA-256",
+  "signingCertificateSha256": "在这里填写签名证书 SHA-256",
+  "minSdkVersion": 26,
+  "releaseChannel": "stable",
+  "mandatory": false
+}

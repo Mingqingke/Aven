@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 上升轨迹：一条收束的曲线，尾端轻盈、顶端落定 -->
+    <path
+        android:pathData="M31,79 C41,78 46,68 52,57 C58,46 64,38 73,34"
+        android:strokeColor="#3E5C4E"
+        android:strokeWidth="5.4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <path
+        android:pathData="M31,70 C39,69 44,61 49,53 C54,45 61,37 71,33"
+        android:strokeColor="#E7F5EC"
+        android:strokeWidth="7.2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <path
+        android:pathData="M71,33 m-7,0 a7,7 0 1,1 14,0 a7,7 0 1,1 -14,0"
+        android:fillColor="#8BE3B6" />
+
+    <path
+        android:pathData="M71,33 m-2.6,0 a2.6,2.6 0 1,1 5.2,0 a2.6,2.6 0 1,1 -5.2,0"
+        android:fillColor="#0F1512" />
+</vector>

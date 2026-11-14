@@ -1,0 +1,23 @@
+{
+  "packageName": "com.aven.app",
+  "versionName": "1.0.6",
+  "versionCode": 7,
+  "releaseDate": "2026-11-14",
+  "changelog": [
+    "新增应用内更新中心 支持清单与 GitHub Releases",
+    "下载显示真实进度 速度 并校验 SHA-256 与签名",
+    "首页去掉重复模块 录入入口收成一行",
+    "关于页分组 版本 开源 更新日志 独立入口",
+    "对话回复自然化 去掉 JSON 与括号",
+    "页面切换与系统返回统一 210ms 淡入位移"
+  ],
+  "apkSize": 24766065,
+  "downloadUrls": [
+    "https://github.com/Mingqingke/Aven/releases/download/v1.0.6/Aven-v1.0.6.apk"
+  ],
+  "sha256": "b840653ced1badbe96552fa8b0f670ca9408a8046a4f2a6a87beae27c044da52",
+  "signingCertificateSha256": "454cb336602bdc2ff2face5303623f3754e852129246f215ea1cea0c825fef87",
+  "minSdkVersion": 26,
+  "releaseChannel": "stable",
+  "mandatory": false
+}
