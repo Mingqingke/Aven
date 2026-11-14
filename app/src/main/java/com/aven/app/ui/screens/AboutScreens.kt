@@ -40,6 +40,9 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.File
 import top.yukonga.miuix.kmp.icon.extended.Info
+import top.yukonga.miuix.kmp.icon.extended.Messages
+import top.yukonga.miuix.kmp.icon.extended.Send
+import top.yukonga.miuix.kmp.icon.extended.Share
 import top.yukonga.miuix.kmp.icon.extended.Layers
 import top.yukonga.miuix.kmp.icon.extended.Lock
 import top.yukonga.miuix.kmp.icon.extended.Store
@@ -113,13 +116,30 @@ fun AboutScreen(onBack: () -> Unit, onOpen: (Route) -> Unit) {
                 }
             }
 
+            item { SectionLabel("联系作者") }
+            item {
+                val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+                BoxCard(insidePadding = 0.dp) {
+                    EntryRow(MiuixIcons.Send, "🛰️ M_qk1127", "点击复制", c.blue, onClick = {
+                        clipboard.setText(androidx.compose.ui.text.AnnotatedString("M_qk1127"))
+                        com.aven.app.ui.AppState.say("已复制")
+                    })
+                    Divider(startPadding = 64.dp)
+                    EntryRow(MiuixIcons.Messages, "🐧 1908976218", "点击复制", c.positive, onClick = {
+                        clipboard.setText(androidx.compose.ui.text.AnnotatedString("1908976218"))
+                        com.aven.app.ui.AppState.say("已复制")
+                    })
+                    Divider(startPadding = 64.dp)
+                    EntryRow(MiuixIcons.Share, "dy Ence11", "点击复制", c.violet, onClick = {
+                        clipboard.setText(androidx.compose.ui.text.AnnotatedString("Ence11"))
+                        com.aven.app.ui.AppState.say("已复制")
+                    })
+                }
+            }
+
             item { SectionLabel("版本") }
             item {
                 BoxCard(insidePadding = 0.dp) {
-                    EntryRow(MiuixIcons.Info, "版本与更新", "检查更新 更新源 签名", c.blue, onClick = {
-                        onOpen(Route.SettingsUpdate)
-                    })
-                    Divider(startPadding = 64.dp)
                     EntryRow(MiuixIcons.File, "更新日志", "版本 ${BuildConfig.VERSION_NAME} 调整记录", c.blue, onClick = {
                         onOpen(Route.AboutUpdate)
                     })
@@ -237,11 +257,12 @@ fun AboutUpdateScreen(onBack: () -> Unit) {
             item {
                 BoxCard {
                     listOf(
-                        "二级页面独立背景 修复页面叠加",
-                        "首页三卡恢复轻微倾斜",
-                        "关于页改为分层结构",
-                        "文案去掉标点 缩短句长",
-                        "输入框改为标签前置 减少大占位符",
+                        "新增面容识别与应用锁 密码保护",
+                        "折线图支持滑动查看数据点",
+                        "首页去掉重复信息 大卡收敛",
+                        "作者联系方式与开源分组",
+                        "考试日期不能晚于今天",
+                        "页面切换与返回统一动效",
                     ).forEach { line ->
                         Row(Modifier.padding(vertical = 4.dp)) {
                             Box(
@@ -257,7 +278,7 @@ fun AboutUpdateScreen(onBack: () -> Unit) {
             item {
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "更新检查尚未接入分发服务 当前版本信息来自安装包本身",
+                    "检查更新在设置 更新与版本",
                     fontSize = 9.5.sp, color = c.secondary, lineHeight = 14.sp,
                 )
             }
