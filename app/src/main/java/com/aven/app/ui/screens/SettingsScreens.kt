@@ -154,6 +154,8 @@ fun SettingsHomeScreen(onOpen: (com.aven.app.ui.Route) -> Unit, onBack: (() -> U
                 BoxCard(insidePadding = 0.dp) {
                     EntryRow(MiuixIcons.MindMap, "AI 配置", "DeepSeek Key 模型 连通测试", c.violet, { onOpen(com.aven.app.ui.Route.SettingsAi) })
                     Divider(startPadding = 64.dp)
+                    EntryRow(MiuixIcons.Lock, "应用锁", "密码 面容 自动锁定", c.negative, { onOpen(com.aven.app.ui.Route.SettingsLock) })
+                    Divider(startPadding = 64.dp)
                     EntryRow(MiuixIcons.Folder, "数据管理", "备份 恢复 导出 清理", c.amber, { onOpen(com.aven.app.ui.Route.SettingsData) })
                     Divider(startPadding = 64.dp)
                     EntryRow(MiuixIcons.Lock, "隐私与安全", "密钥 授权 删除", c.negative, { onOpen(com.aven.app.ui.Route.SettingsPrivacy) })
@@ -651,7 +653,7 @@ fun PrivacySettingsScreen(onBack: () -> Unit) {
             SectionLabel("面向未成年人")
             BoxCard {
                 Text(
-                    "面向中学生 默认不联网 不上传成绩 可随时关闭授权",
+                    "默认不联网 不上传成绩 可随时关闭授权",
                     fontSize = 10.5.sp, color = c.secondary, lineHeight = 16.sp,
                 )
             }
