@@ -1,21 +1,21 @@
 {
   "packageName": "com.aven.app",
-  "versionName": "1.0.6",
-  "versionCode": 7,
+  "versionName": "1.0.7",
+  "versionCode": 8,
   "releaseDate": "2026-11-14",
   "changelog": [
-    "新增应用内更新中心 支持清单与 GitHub Releases",
-    "下载显示真实进度 速度 并校验 SHA-256 与签名",
-    "首页去掉重复模块 录入入口收成一行",
-    "关于页分组 版本 开源 更新日志 独立入口",
-    "对话回复自然化 去掉 JSON 与括号",
-    "页面切换与系统返回统一 210ms 淡入位移"
+    "新增面容识别与应用锁 6 位密码加盐保存",
+    "解锁成功圆环收敛 对勾沿路径绘制",
+    "折线图支持滑动查看数据点",
+    "底部导航选中改黑色 去除按压黑框",
+    "关于页增加作者联系方式 移除重复更新入口",
+    "考试日期不能晚于今天"
   ],
-  "apkSize": 24766065,
+  "apkSize": 24880812,
   "downloadUrls": [
-    "https://github.com/Mingqingke/Aven/releases/download/v1.0.6/Aven-v1.0.6.apk"
+    "https://github.com/Mingqingke/Aven/releases/download/v1.0.7/Aven-v1.0.7.apk"
   ],
-  "sha256": "b840653ced1badbe96552fa8b0f670ca9408a8046a4f2a6a87beae27c044da52",
+  "sha256": "d43d20986e659f0f59b9678bea90af5dec9a0d2aacf82437ade36cbbc64ebead",
   "signingCertificateSha256": "454cb336602bdc2ff2face5303623f3754e852129246f215ea1cea0c825fef87",
   "minSdkVersion": 26,
   "releaseChannel": "stable",
