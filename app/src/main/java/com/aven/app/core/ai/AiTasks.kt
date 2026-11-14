@@ -167,15 +167,16 @@ $digest
 
 现在回答学生的问题"""
 
-    fun visionPrompt(): String = """你在识别一张中国中学成绩单。
-只输出 JSON 对象，不要解释：
-{"title":"考试名称，无法确认填 null","date":"YYYY-MM-DD，无法确认填 null",
- "subjects":[{"name":"科目","score":分数或null,"full":满分或null,"rank":名次或null,"total":参考人数或null}]}
-识别规则：
-1. 看不清或不确定的数字必须填 null，禁止猜测。
-2. 不要把总分、编号、考号当成分数。
-3. 科目名保留成绩单原文。
-4. 只输出 JSON。"""
+    fun visionPrompt(): String = """你在读取中国中学成绩页面截图 可能是竖版字段列表 不是传统表格
+常见字段 语文(原始分) 91.5 / 政治(得分) 70 / 数学(校次) 15 / 总分(原始分) 431.5
+只输出 JSON 对象 不要解释
+{"title":null,"date":null,"totalScore":431.5,"subjects":[{"name":"语文","score":91.5,"full":null,"converted":null,"rank":null,"total":null}]}
+规则
+1 score 是原始分 converted 是得分或赋分 rank 是校次或排名 full 未知填 null 不要猜满分
+2 校次行不要当成新科目 合并到同一科目
+3 总分 班级 姓名 时间 不是科目
+4 看不清或不确定的字段填 null 不要编造
+5 只输出 JSON"""
 
     fun parseReport(text: String): AiReport {
         val cleaned = text.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
@@ -209,36 +210,61 @@ $digest
         val full: Double?,
         val rank: Int?,
         val total: Int?,
+        val converted: Double? = null,
     )
 
-    data class VisionSheet(val title: String?, val date: String?, val subjects: List<VisionSubject>) {
+    data class VisionSheet(
+        val title: String?,
+        val date: String?,
+        val subjects: List<VisionSubject>,
+        val totalScore: Double? = null,
+    ) {
         val parsedCount: Int get() = subjects.count { it.score != null }
     }
 
     fun parseVision(text: String): VisionSheet? {
-        val cleaned = text.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
-        val json = cleaned.substringAfter('{', "").let { if (it.isBlank()) cleaned else "{" + it }
+        val startIdx = text.indexOf('{')
+        val endIdx = text.lastIndexOf('}')
+        if (startIdx < 0 || endIdx <= startIdx) return null
+        val json = text.substring(startIdx, endIdx + 1)
         return runCatching {
             val o = JSONObject(json)
-            val arr = o.optJSONArray("subjects")
+            val arr = o.optJSONArray("subjects") ?: o.optJSONArray("data")
             val list = mutableListOf<VisionSubject>()
             if (arr != null) for (i in 0 until arr.length()) {
                 val s = arr.optJSONObject(i) ?: continue
-                val name = s.optString("name").trim()
-                if (name.isBlank()) continue
+                val rawName = s.optString("name").ifBlank { s.optString("subject") }.trim()
+                if (rawName.isBlank()) continue
+                val name = rawName.substringBefore('(').substringBefore('（').trim()
+                fun num(vararg keys: String): Double? {
+                    for (k in keys) if (s.has(k) && !s.isNull(k)) {
+                        s.optDouble(k).takeIf { !it.isNaN() }?.let { return it }
+                    }
+                    return null
+                }
+                fun int(vararg keys: String): Int? {
+                    for (k in keys) if (s.has(k) && !s.isNull(k)) {
+                        val v = s.optInt(k, -1)
+                        if (v > 0) return v
+                    }
+                    return null
+                }
                 list += VisionSubject(
                     name = name,
-                    score = if (s.isNull("score")) null else s.optDouble("score"),
-                    full = if (s.isNull("full")) null else s.optDouble("full"),
-                    rank = if (s.isNull("rank")) null else s.optInt("rank"),
-                    total = if (s.isNull("total")) null else s.optInt("total"),
+                    score = num("score", "raw", "原始分"),
+                    full = num("full", "fullScore", "满分"),
+                    rank = int("rank", "校次", "排名"),
+                    total = int("total", "totalCount", "参考人数"),
+                    converted = num("converted", "赋分", "得分"),
                 )
             }
             VisionSheet(
                 title = if (o.isNull("title")) null else o.optString("title").takeIf { it.isNotBlank() && it != "null" },
                 date = if (o.isNull("date")) null else o.optString("date").takeIf { it.isNotBlank() && it != "null" },
                 subjects = list,
+                totalScore = if (o.has("totalScore") && !o.isNull("totalScore")) o.optDouble("totalScore") else null,
             )
         }.getOrNull()
     }
+
 }
