@@ -4,7 +4,6 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.os.Bundle
-import androidx.biometric.BiometricManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -21,9 +20,6 @@ object LockPrefs {
 
     fun enabled(ctx: Context) = sp(ctx).getBoolean("enabled", false)
     fun setEnabled(ctx: Context, v: Boolean) = sp(ctx).edit().putBoolean("enabled", v).apply()
-
-    fun biometric(ctx: Context) = sp(ctx).getBoolean("biometric", false)
-    fun setBiometric(ctx: Context, v: Boolean) = sp(ctx).edit().putBoolean("biometric", v).apply()
 
     fun timeoutSec(ctx: Context) = sp(ctx).getInt("timeout", 300)
     fun setTimeoutSec(ctx: Context, v: Int) = sp(ctx).edit().putInt("timeout", v).apply()
@@ -51,9 +47,6 @@ object LockPrefs {
         return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
     }
 
-    fun canBiometric(ctx: Context): Boolean =
-        BiometricManager.from(ctx).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) ==
-            BiometricManager.BIOMETRIC_SUCCESS
 }
 
 /**
