@@ -16,7 +16,7 @@ sealed interface Route : NavKey {
     @Serializable data class ReportDetail(val id: Long) : Route
     @Serializable data class EditExam(val id: Long) : Route
     @Serializable data object AddExam : Route
-    @Serializable data class BatchImport(val paths: List<String>) : Route
+    @Serializable data class BatchImport(val paths: List<String>, val autoSave: Boolean = false) : Route
     @Serializable data object AiChat : Route
     @Serializable data object Reports : Route
 
