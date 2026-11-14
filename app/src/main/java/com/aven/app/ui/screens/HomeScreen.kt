@@ -127,7 +127,7 @@ fun HomeScreen(
         BoxWithConstraints(Modifier.fillMaxWidth()) {
         val wide = maxWidth >= 600.dp
         val rightW = if (wide) 150.dp else 104.dp
-        val heroH = if (wide) 254.dp else 220.dp
+        val heroH = if (wide) 232.dp else 202.dp
         Row(
             Modifier.fillMaxWidth().height(heroH),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -334,16 +334,7 @@ private fun ProgressCard(
         onClick = if (latest != null) onOpen else onAddExam,
     ) {
         Column(Modifier.fillMaxSize().padding(start = 18.dp, top = 18.dp, end = 16.dp, bottom = 16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "学业进度", fontSize = 10.sp, fontWeight = FontWeight.Medium,
-                    color = fg.copy(alpha = 0.55f), modifier = Modifier.weight(1f),
-                )
-                if (compare.hasComparison) {
-                    Text(compare.confidenceText, fontSize = 9.sp, color = fg.copy(alpha = 0.45f))
-                }
-            }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     title, fontSize = 22.sp, lineHeight = 27.sp, fontWeight = FontWeight.Bold,
@@ -379,8 +370,6 @@ private fun ProgressCard(
                         maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(bottom = 4.dp),
                     )
                 }
-                Spacer(Modifier.height(2.dp))
-                Text(compare.basis, fontSize = 9.sp, color = fg.copy(alpha = 0.45f), maxLines = 1)
                 Spacer(Modifier.weight(1f))
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
