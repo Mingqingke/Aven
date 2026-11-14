@@ -1,5 +1,8 @@
 package com.aven.app.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
@@ -68,6 +71,7 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Add
+import top.yukonga.miuix.kmp.icon.extended.Import
 import top.yukonga.miuix.kmp.icon.extended.ChevronForward
 import top.yukonga.miuix.kmp.icon.extended.Delete
 import top.yukonga.miuix.kmp.icon.extended.ListView
@@ -80,16 +84,37 @@ fun RecordsScreen(
     onOpenExam: (Long) -> Unit,
     onAddExam: () -> Unit,
     onOpenSubject: (String) -> Unit,
+    onBatch: (List<String>) -> Unit,
 ) {
     val c = LocalAven.current
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
     val exams by Store.exams.collectAsState()
     var filter by remember { mutableStateOf("全部") }
     val types = remember(exams) { listOf("全部") + exams.map { it.type }.distinct().take(4) }
     val shown = if (filter == "全部") exams else exams.filter { it.type == filter }
     val allSubjects = remember(exams) { exams.flatMap { e -> e.subjects.map { it.subject } }.distinct() }
+    val batchPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(10)
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            scope.launch {
+                val paths = uris.mapNotNull { Store.importImage(it) }
+                if (paths.isNotEmpty()) onBatch(paths)
+            }
+        }
+    }
 
     Column(Modifier.fillMaxWidth()) {
         ScreenTitle("成绩档案", "${exams.size} 场考试  ${allSubjects.size} 个科目") {
+            Box(
+                Modifier.size(38.dp).clip(CircleShape).background(c.neutralBg)
+                    .clickable { batchPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(MiuixIcons.Import, "批量导入", Modifier.size(19.dp), tint = c.ink)
+            }
+            Spacer(Modifier.width(8.dp))
             Box(
                 Modifier.size(38.dp).clip(CircleShape).background(c.ink).clickable(onClick = onAddExam),
                 contentAlignment = Alignment.Center,
@@ -152,6 +177,12 @@ fun RecordsScreen(
                 item {
                     Spacer(Modifier.height(4.dp))
                     SoftButton("添加考试", onAddExam, modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(10.dp))
+                    SoftButton(
+                        "批量导入历史成绩",
+                        { batchPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                     Spacer(Modifier.height(16.dp))
                 }
             }
@@ -234,13 +265,14 @@ fun ExamDetailScreen(
     onDeleted: () -> Unit,
 ) {
     val c = LocalAven.current
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
     val exams by Store.exams.collectAsState()
     val exam = exams.firstOrNull { it.id == examId }
     val band by Prefs.compareBand.collectAsState()
     var showDelete by remember { mutableStateOf(false) }
     var images by remember { mutableStateOf<List<String>>(emptyList()) }
     var detailSubject by remember { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
 
     LaunchedEffect(examId) { images = Store.examImages(examId) }
 
