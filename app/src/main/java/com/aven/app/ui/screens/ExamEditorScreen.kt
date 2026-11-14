@@ -228,6 +228,7 @@ fun ExamEditorScreen(
         error = ""
         val millis = parseDate(dateText)
         if (millis == null) { error = "日期格式应为 2026.11.05"; return }
+        if (millis > Dates.today() + 86_400_000L - 1) { error = "日期晚于今天 请选择已完成的考试"; return }
         if (title.isBlank()) { error = "请填写考试名称"; return }
         val drafts = mutableListOf<SubjectDraft>()
         for (s in subjects) {
