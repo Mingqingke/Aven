@@ -1,19 +1,18 @@
 {
   "packageName": "com.aven.app",
-  "versionName": "1.1.0",
-  "versionCode": 11,
+  "versionName": "1.1.1",
+  "versionCode": 12,
   "releaseDate": "2026-11-14",
   "changelog": [
-    "新增批量导入 每张图一场考试",
-    "批量核对页可逐场改名称日期 删除单场",
-    "语数英不再出现赋分",
-    "多场保存后进入成绩与分析"
+    "添加考试里相册多选 每张自动成为一场考试",
+    "识别后按日期排序并自动保存",
+    "可继续录入下一次"
   ],
   "apkSize": 24848158,
   "downloadUrls": [
-    "https://github.com/Mingqingke/Aven/releases/download/v1.1.0/Aven-v1.1.0.apk"
+    "https://github.com/Mingqingke/Aven/releases/download/v1.1.1/Aven-v1.1.1.apk"
   ],
-  "sha256": "83364c1886921c8e6d1043a498526d911d04fa95a9fb1057c55657e1ee9134e0",
+  "sha256": "ba752f73d3302bb66d0d788c0886b42f86709bb17407895fb3a337dd962275d7",
   "signingCertificateSha256": "454cb336602bdc2ff2face5303623f3754e852129246f215ea1cea0c825fef87",
   "minSdkVersion": 26,
   "releaseChannel": "stable",
