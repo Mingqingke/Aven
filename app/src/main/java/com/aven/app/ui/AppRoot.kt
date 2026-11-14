@@ -15,6 +15,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aven.app.core.Prefs
+import com.aven.app.core.lock.AppLock
 import com.aven.app.core.update.UpdateRunner
 import com.aven.app.ui.screens.AboutComponentsScreen
 import com.aven.app.ui.screens.AboutScreen
@@ -60,7 +62,9 @@ import com.aven.app.ui.screens.AiChatScreen
 import com.aven.app.ui.screens.AiSettingsScreen
 import com.aven.app.ui.screens.AppearanceSettingsScreen
 import com.aven.app.ui.screens.DataSettingsScreen
+import com.aven.app.ui.screens.AppLockScreen
 import com.aven.app.ui.screens.ExamDetailScreen
+import com.aven.app.ui.screens.LockSettingsScreen
 import com.aven.app.ui.screens.ExamEditorScreen
 import com.aven.app.ui.screens.ExamSettingsScreen
 import com.aven.app.ui.screens.HomeScreen
@@ -146,6 +150,12 @@ fun AppRoot() {
         3 -> plansNav
         else -> homeNav
     }
+    val locked by AppLock.locked.collectAsState()
+    if (locked) {
+        AppLockScreen()
+        return
+    }
+
     val atRoot = activeNav.backStack.size == 1
     val settingsAtRoot = settingsNav.backStack.size == 1
 
@@ -251,6 +261,9 @@ fun AppRoot() {
                         entry<Route.SettingsUpdate> {
                             PageSurface { UpdateSettingsScreen(onBack = { settingsNav.pop() }) }
                         }
+                        entry<Route.SettingsLock> {
+                            PageSurface { LockSettingsScreen(onBack = { settingsNav.pop() }) }
+                        }
                         entry<Route.Update> {
                             PageSurface { UpdateScreen(onBack = { settingsNav.pop() }) }
                         }
@@ -331,20 +344,23 @@ private fun BottomBar(
                 Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(12.dp))
-                    .clickable { onSelect(index) }
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) { onSelect(index) }
                     .padding(vertical = 6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 val scale by animateFloatAsState(if (selected) 1.08f else 1f, tween(180), label = "navScale")
                 Icon(
                     item.icon, item.label, Modifier.size(22.dp).graphicsLayer { scaleX = scale; scaleY = scale },
-                    tint = if (selected) c.blue else c.secondary.copy(alpha = 0.75f),
+                    tint = if (selected) c.ink else c.secondary.copy(alpha = 0.75f),
                 )
                 Spacer(Modifier.height(3.dp))
                 Text(
                     item.label, fontSize = 10.5.sp,
                     fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
-                    color = if (selected) c.blue else c.secondary,
+                    color = if (selected) c.ink else c.secondary,
                 )
             }
         }
