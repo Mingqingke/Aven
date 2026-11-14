@@ -15,8 +15,8 @@ android {
         applicationId = "com.aven.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 7
-        versionName = "1.0.6"
+        versionCode = 8
+        versionName = "1.0.7"
         ndk { abiFilters += listOf("arm64-v8a") }
         resourceConfigurations += listOf("zh", "en")
     }
@@ -107,6 +107,10 @@ dependencies {
 
     // 本地 OCR（离线中文识别）
     implementation("com.google.mlkit:text-recognition-chinese:16.0.1")
+
+    // 生物识别与 FragmentActivity
+    implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.fragment:fragment-ktx:1.8.9")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303")
