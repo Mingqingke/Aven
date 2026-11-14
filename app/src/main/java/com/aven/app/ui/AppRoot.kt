@@ -78,7 +78,6 @@ import com.aven.app.ui.screens.SettingsHomeScreen
 import com.aven.app.ui.screens.SubjectDetailScreen
 import com.aven.app.ui.screens.UpdateDialogHost
 import com.aven.app.ui.screens.UpdateScreen
-import com.aven.app.ui.screens.UpdateSettingsScreen
 import com.aven.app.ui.theme.LocalAven
 import kotlinx.coroutines.delay
 import top.yukonga.miuix.kmp.basic.Icon
@@ -257,9 +256,6 @@ fun AppRoot() {
                         }
                         entry<Route.SettingsPrivacy> {
                             PageSurface { PrivacySettingsScreen(onBack = { settingsNav.pop() }) }
-                        }
-                        entry<Route.SettingsUpdate> {
-                            PageSurface { UpdateSettingsScreen(onBack = { settingsNav.pop() }) }
                         }
                         entry<Route.SettingsLock> {
                             PageSurface { LockSettingsScreen(onBack = { settingsNav.pop() }) }
