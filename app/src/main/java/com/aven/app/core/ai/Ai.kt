@@ -112,30 +112,30 @@ object Ai {
         if (key.isBlank()) return@withContext Out.Err("还没有填写 API Key")
         val model = (modelOverride ?: Prefs.aiModel.value).ifBlank { "deepseek-flash" }
         if (!supportsVision(model)) {
-            return@withContext Out.Err("当前模型不支持图片 请切换到 deepseek-flash")
+            return@withContext Out.Err("当前模型不支持图片输入 请切换到 deepseek-flash")
         }
         val content = JSONArray()
         content.put(JSONObject().put("type", "text").put("text", prompt))
         var attached = 0
         for (path in images.take(3)) {
-            val b64 = Ocr.encodeJpeg(path) ?: continue
-            content.put(
-                JSONObject().put("type", "image_url").put(
-                    "image_url",
-                    JSONObject().put("url", "data:image/jpeg;base64,$b64")
+            for (slice in Ocr.encodeVisionSlices(path).take(4)) {
+                if (attached >= 6) break
+                content.put(
+                    JSONObject().put("type", "image_url").put(
+                        "image_url",
+                        JSONObject().put("url", "data:image/jpeg;base64,$slice")
+                    )
                 )
-            )
-            attached += 1
+                attached += 1
+            }
         }
-        if (attached == 0) return@withContext Out.Err("图片读取失败")
-        val messages = JSONArray().put(
-            JSONObject().put("role", "user").put("content", content)
-        )
+        if (attached == 0) return@withContext Out.Err("图片读取失败 可重新选择")
+        val messages = JSONArray().put(JSONObject().put("role", "user").put("content", content))
         val bodyJson = JSONObject()
             .put("model", model)
             .put("messages", messages)
-            .put("temperature", 0.1)
-            .put("max_tokens", 2500)
+            .put("temperature", 0.0)
+            .put("max_tokens", 4096)
             .put("stream", false)
         post(context, key, bodyJson, model)
     }
@@ -151,10 +151,11 @@ object Ai {
             client.newCall(req).execute().use { resp ->
                 val body = resp.body?.string().orEmpty()
                 if (!resp.isSuccessful) return@use Out.Err(errorText(resp.code, body), resp.code)
-                val text = JSONObject(body)
-                    .optJSONArray("choices")?.optJSONObject(0)
-                    ?.optJSONObject("message")?.optString("content").orEmpty()
-                if (text.isBlank()) Out.Err("模型没有返回内容") else Out.Ok(text)
+                val message = JSONObject(body)
+                    .optJSONArray("choices")?.optJSONObject(0)?.optJSONObject("message")
+                var text = message?.optString("content").orEmpty()
+                if (text.isBlank()) text = message?.optString("reasoning_content").orEmpty()
+                if (text.isBlank()) Out.Err("模型没有返回内容 可重试") else Out.Ok(text)
             }
         }.getOrElse { Out.Err(networkText(it)) }
     }
