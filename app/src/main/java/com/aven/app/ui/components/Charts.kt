@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aven.app.core.Dates
 import com.aven.app.core.calc.ScoreEngine
 import com.aven.app.core.calc.ScoreEngine.TrendPoint
 import com.aven.app.ui.theme.LocalAven
@@ -63,6 +65,7 @@ fun TrendChart(
         return
     }
     var started by remember(points) { mutableStateOf(false) }
+    var selected by remember(points) { mutableStateOf<Int?>(null) }
     LaunchedEffect(points) { started = true }
     val anim by animateFloatAsState(
         targetValue = if (started) 1f else 0f,
@@ -82,26 +85,43 @@ fun TrendChart(
                 .fillMaxWidth()
                 .height(196.dp)
                 .pointerInput(points) {
-                    if (onTap != null) {
-                        detectTapGestures { off ->
-                            val padX = 14.dp.toPx()
-                            val usable = size.width - padX * 2
-                            val step = if (points.size > 1) usable / (points.size - 1) else 0f
-                            val idx = if (points.size == 1) 0 else ((off.x - padX) / step).toInt().coerceIn(0, points.lastIndex)
-                            onTap(points[idx])
-                        }
+                    fun indexAt(x: Float): Int {
+                        val padX = 14.dp.toPx()
+                        val usable = size.width - padX * 2
+                        val step = if (points.size > 1) usable / (points.size - 1) else 0f
+                        return if (points.size == 1) 0
+                        else ((x - padX) / step).toInt().coerceIn(0, points.lastIndex)
+                    }
+                    detectDragGestures(
+                        onDragStart = { off -> selected = indexAt(off.x) },
+                        onDrag = { change, _ ->
+                            change.consume()
+                            selected = indexAt(change.position.x)
+                        },
+                    )
+                }
+                .pointerInput(points, selected) {
+                    fun indexAt(x: Float): Int {
+                        val padX = 14.dp.toPx()
+                        val usable = size.width - padX * 2
+                        val step = if (points.size > 1) usable / (points.size - 1) else 0f
+                        return if (points.size == 1) 0
+                        else ((x - padX) / step).toInt().coerceIn(0, points.lastIndex)
+                    }
+                    detectTapGestures { off ->
+                        val idx = indexAt(off.x)
+                        if (selected == idx && onTap != null) onTap(points[idx]) else selected = idx
                     }
                 }
         ) {
             val padX = 14.dp.toPx()
-            val padTop = 20.dp.toPx()
+            val padTop = 26.dp.toPx()
             val padBottom = 16.dp.toPx()
             val w = size.width - padX * 2
             val h = size.height - padTop - padBottom
             fun x(i: Int) = padX + if (points.size > 1) w * i / (points.size - 1) else w / 2
             fun y(v: Double) = padTop + (h * (1f - ((v - lo) / (hi - lo)).toFloat()))
 
-            // 底线
             drawLine(
                 color = c.hairline,
                 start = Offset(padX, padTop + h),
@@ -145,20 +165,48 @@ fun TrendChart(
                     val px = x(i)
                     val py = y(values[i])
                     val last = i == points.lastIndex
-                    drawCircle(c.getCardColor(), radius = (if (last) 5.2f else 3.6f).dp.toPx(), center = Offset(px, py))
+                    drawCircle(c.card, radius = (if (last) 5.2f else 3.6f).dp.toPx(), center = Offset(px, py))
                     drawCircle(color, radius = (if (last) 4.0f else 2.6f).dp.toPx(), center = Offset(px, py))
                 }
             }
+
+            selected?.let { i ->
+                val px = x(i)
+                val py = y(values[i])
+                drawLine(
+                    color = color.copy(alpha = 0.35f),
+                    start = Offset(px, padTop),
+                    end = Offset(px, padTop + h),
+                    strokeWidth = 1.dp.toPx(),
+                )
+                drawCircle(color.copy(alpha = 0.16f), radius = 9.dp.toPx(), center = Offset(px, py))
+                drawCircle(c.card, radius = 6.dp.toPx(), center = Offset(px, py))
+                drawCircle(color, radius = 4.dp.toPx(), center = Offset(px, py))
+            }
         }
+
         Row(Modifier.fillMaxWidth().align(Alignment.TopStart).padding(start = 2.dp, end = 2.dp)) {
             Text(ScoreEngine.fmtScore(maxV), fontSize = 9.5.sp, color = c.secondary.copy(alpha = 0.8f))
             Spacer(Modifier.weight(1f))
             Text(ScoreEngine.fmtScore(minV), fontSize = 9.5.sp, color = c.secondary.copy(alpha = 0.8f))
         }
+
+        selected?.let { i ->
+            val p = points[i]
+            Row(
+                Modifier.align(Alignment.TopCenter).padding(top = 2.dp)
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(9.dp))
+                    .background(c.ink.copy(alpha = 0.9f))
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+            ) {
+                Text(
+                    "${Dates.fmtShort(p.date)}  ${ScoreEngine.fmtScore(value(p))}",
+                    fontSize = 10.sp, color = c.card,
+                )
+            }
+        }
     }
 }
-
-private fun com.aven.app.ui.theme.AvenColors.getCardColor(): Color = card
 
 @Composable
 fun MiniSparkline(
