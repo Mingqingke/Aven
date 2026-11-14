@@ -1,5 +1,7 @@
 # Aven
 
+![Android CI](https://github.com/Mingqingke/Aven/actions/workflows/android.yml/badge.svg)
+
 仓库 https://github.com/Mingqingke/Aven
 下载 https://github.com/Mingqingke/Aven/releases
 
