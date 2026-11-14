@@ -99,6 +99,7 @@ fun ExamEditorScreen(
     examId: Long,
     onBack: () -> Unit,
     onSaved: (Long) -> Unit,
+    onBatch: (List<String>) -> Unit = {},
 ) {
     val c = LocalAven.current
     val context = LocalContext.current
@@ -193,8 +194,12 @@ fun ExamEditorScreen(
             scope.launch {
                 busy = true
                 val saved = uris.mapNotNull { Store.importImage(it) }
-                images = images + saved
                 busy = false
+                if (saved.size > 1) {
+                    onBatch(saved)
+                    return@launch
+                }
+                images = images + saved
                 if (saved.isNotEmpty()) runOcr(saved)
             }
         }
@@ -365,7 +370,7 @@ fun ExamEditorScreen(
                     Text("成绩单识别", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = c.ink)
                     Spacer(Modifier.height(3.dp))
                     Text(
-                        "本地识别不上传图片 仅当你点击云端识别时才发送",
+                        "相册可多选 每张会作为一场独立考试",
                         fontSize = 10.5.sp, color = c.secondary, lineHeight = 15.sp,
                     )
                     Spacer(Modifier.height(12.dp))
