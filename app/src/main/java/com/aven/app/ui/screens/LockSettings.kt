@@ -1,10 +1,5 @@
 package com.aven.app.ui.screens
 
-import android.content.Intent
-import android.os.Build
-import android.provider.Settings
-import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -24,8 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
 import com.aven.app.core.lock.AppLock
 import com.aven.app.core.lock.LockPrefs
 import com.aven.app.ui.components.BoxCard
@@ -38,8 +31,6 @@ import com.aven.app.ui.components.SoftButton
 import com.aven.app.ui.components.ToggleRow
 import com.aven.app.ui.components.ValueRow
 import com.aven.app.ui.theme.LocalAven
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 
@@ -48,46 +39,13 @@ fun LockSettingsScreen(onBack: () -> Unit) {
     val c = LocalAven.current
     val context = LocalContext.current
     var enabled by remember { mutableStateOf(LockPrefs.enabled(context)) }
-    var biometric by remember { mutableStateOf(LockPrefs.biometric(context)) }
     var timeout by remember { mutableStateOf(LockPrefs.timeoutSec(context)) }
     var dialog by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
-    var askEnroll by remember { mutableStateOf(false) }
 
     fun refresh() {
         enabled = LockPrefs.enabled(context)
-        biometric = LockPrefs.biometric(context)
         timeout = LockPrefs.timeoutSec(context)
-    }
-
-    fun enableBiometric() {
-        val activity = context as? FragmentActivity ?: return
-        if (!LockPrefs.canBiometric(context)) {
-            askEnroll = true
-            return
-        }
-        val prompt = BiometricPrompt(
-            activity,
-            ContextCompat.getMainExecutor(context),
-            object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    LockPrefs.setBiometric(context, true)
-                    refresh()
-                    message = "面容解锁已开启"
-                }
-
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    message = "已取消"
-                }
-            },
-        )
-        val info = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("面容识别")
-            .setSubtitle("确认开启面容解锁")
-            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-            .setNegativeButtonText("取消")
-            .build()
-        runCatching { prompt.authenticate(info) }.onFailure { message = "无法启动系统认证" }
     }
 
     Column(Modifier.fillMaxWidth()) {
@@ -98,25 +56,14 @@ fun LockSettingsScreen(onBack: () -> Unit) {
         ) {
             item {
                 BoxCard {
-                    ToggleRow("应用锁", "打开应用时验证身份", enabled) { on ->
+                    ToggleRow("应用锁", "打开应用时验证密码", enabled) { on ->
                         if (on) {
                             if (LockPrefs.hasPassword(context)) {
                                 LockPrefs.setEnabled(context, true)
                                 refresh()
                                 message = "应用锁已开启"
                             } else dialog = "set"
-                        } else {
-                            dialog = "disable"
-                        }
-                    }
-                    Divider()
-                    ToggleRow("面容解锁", if (enabled) "使用系统面容快速解锁" else "需先开启应用锁", biometric && enabled) { on ->
-                        if (on) {
-                            if (!enabled) message = "请先开启应用锁" else enableBiometric()
-                        } else {
-                            LockPrefs.setBiometric(context, false)
-                            refresh()
-                        }
+                        } else dialog = "disable"
                     }
                 }
             }
@@ -124,9 +71,7 @@ fun LockSettingsScreen(onBack: () -> Unit) {
             item { SectionLabel("自动锁定", accent = c.blue) }
             item {
                 BoxCard {
-                    androidx.compose.foundation.lazy.LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
+                    androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(
                             listOf(
                                 "立即" to 0,
@@ -142,6 +87,7 @@ fun LockSettingsScreen(onBack: () -> Unit) {
                             }
                         }
                     }
+                    Spacer(Modifier.height(8.dp))
                     Text("离开应用超过该时间后需要重新验证", fontSize = 9.5.sp, color = c.secondary)
                 }
             }
@@ -170,16 +116,13 @@ fun LockSettingsScreen(onBack: () -> Unit) {
             }
             item {
                 Spacer(Modifier.height(12.dp))
-                Text(
-                    "密码只保存加盐散列 面容认证由系统完成",
-                    fontSize = 9.5.sp, color = c.secondary, lineHeight = 14.sp,
-                )
+                Text("密码只保存加盐散列 不保存明文", fontSize = 9.5.sp, color = c.secondary)
             }
         }
     }
 
     when (dialog) {
-        "set" -> PasswordDialog(mode = "set", onClose = { dialog = "" }) { old, new ->
+        "set" -> PasswordDialog("set", { dialog = "" }) { old, new ->
             when {
                 new.length != 6 -> "密码需为 6 位数字"
                 old.isNotBlank() && !LockPrefs.verify(context, old) -> "旧密码不正确"
@@ -193,7 +136,7 @@ fun LockSettingsScreen(onBack: () -> Unit) {
                 }
             }
         }
-        "change" -> PasswordDialog(mode = "change", onClose = { dialog = "" }) { old, new ->
+        "change" -> PasswordDialog("change", { dialog = "" }) { old, new ->
             when {
                 old.length != 6 || !LockPrefs.verify(context, old) -> "旧密码不正确"
                 new.length != 6 -> "新密码需为 6 位数字"
@@ -205,42 +148,15 @@ fun LockSettingsScreen(onBack: () -> Unit) {
                 }
             }
         }
-        "disable" -> PasswordDialog(mode = "disable", onClose = { dialog = "" }) { old, _ ->
+        "disable" -> PasswordDialog("disable", { dialog = "" }) { old, _ ->
             if (!LockPrefs.verify(context, old)) "密码不正确"
             else {
                 LockPrefs.setEnabled(context, false)
-                LockPrefs.setBiometric(context, false)
                 AppLock.unlock()
                 refresh()
                 dialog = ""
                 message = "应用锁已关闭"
                 null
-            }
-        }
-    }
-
-    if (askEnroll) {
-        OverlayDialog(
-            show = true,
-            title = "未录入面容",
-            summary = "请先在系统设置中录入面容或指纹",
-            onDismissRequest = { askEnroll = false },
-        ) {
-            Column {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SoftButton("稍后", { askEnroll = false }, modifier = Modifier.weight(1f))
-                    PrimaryButton("前往设置", {
-                        askEnroll = false
-                        runCatching {
-                            val intent = if (Build.VERSION.SDK_INT >= 30) {
-                                Intent(Settings.ACTION_BIOMETRIC_ENROLL)
-                            } else {
-                                Intent(Settings.ACTION_SECURITY_SETTINGS)
-                            }
-                            context.startActivity(intent)
-                        }
-                    }, modifier = Modifier.weight(1f))
-                }
             }
         }
     }
