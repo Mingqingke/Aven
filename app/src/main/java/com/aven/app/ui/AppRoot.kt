@@ -63,6 +63,7 @@ import com.aven.app.ui.screens.AiSettingsScreen
 import com.aven.app.ui.screens.AppearanceSettingsScreen
 import com.aven.app.ui.screens.DataSettingsScreen
 import com.aven.app.ui.screens.AppLockScreen
+import com.aven.app.ui.screens.BatchImportScreen
 import com.aven.app.ui.screens.ExamDetailScreen
 import com.aven.app.ui.screens.LockSettingsScreen
 import com.aven.app.ui.screens.ExamEditorScreen
@@ -395,6 +396,7 @@ private fun TabNavHost(
                             onOpenExam = { nav.pushSafely(Route.ExamDetail(it)) },
                             onAddExam = { nav.pushSafely(Route.AddExam) },
                             onOpenSubject = { nav.pushSafely(Route.SubjectDetail(it)) },
+                            onBatch = { paths -> nav.pushSafely(Route.BatchImport(paths)) },
                         )
                     }
                 }
@@ -431,6 +433,11 @@ private fun TabNavHost(
                 entry<Route.AddExam> {
                     PageSurface {
                         ExamEditorScreen(0L, onBack = { nav.pop() }, onSaved = { nav.pop() })
+                    }
+                }
+                entry<Route.BatchImport> { r ->
+                    PageSurface {
+                        BatchImportScreen(r.paths, onBack = { nav.pop() }, onDone = { nav.pop() })
                     }
                 }
                 entry<Route.EditExam> { r ->
