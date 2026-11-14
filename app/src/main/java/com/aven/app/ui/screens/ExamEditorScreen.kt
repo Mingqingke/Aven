@@ -280,35 +280,69 @@ fun ExamEditorScreen(
         }
         scope.launch {
             busy = true
-            status = "云端识别中"
-            when (val r = Ai.vision(context, images, AiTasks.visionPrompt())) {
-                is Ai.Out.Ok -> {
-                    val sheet = AiTasks.parseVision(r.text)
-                    if (sheet == null || sheet.subjects.isEmpty()) {
-                        status = "云端没有返回可用的结构化结果"
-                    } else {
-                        subjects.clear()
-                        subjects.addAll(sheet.subjects.map {
-                            EditSubject(
-                                subject = it.name,
-                                score = it.score?.let { v -> ScoreText.of(v) } ?: "",
-                                full = it.full?.let { v -> ScoreText.of(v) } ?: "",
-                                rank = it.rank?.toString() ?: "",
-                                total = it.total?.toString() ?: "",
-                                confident = it.score != null && it.full != null,
-                            )
-                        })
-                        sheet.title?.let { if (title.isBlank()) title = it }
-                        sheet.date?.let { d ->
-                            runCatching {
-                                val parts = d.split("-")
-                                dateText = Dates.fmt(Dates.of(parts[0].toInt(), parts[1].toInt(), parts[2].toInt()))
-                            }
+            val merged = linkedMapOf<String, EditSubject>()
+            var lastError = ""
+            var titleFrom: String? = null
+            var dateFrom: String? = null
+            var conflicts = 0
+            val source = images.take(5)
+            for ((index, path) in source.withIndex()) {
+                status = "识别第 ${index + 1}/${source.size} 张"
+                when (val r = Ai.vision(context, listOf(path), AiTasks.visionPrompt())) {
+                    is Ai.Out.Ok -> {
+                        val sheet = AiTasks.parseVision(r.text)
+                        if (sheet == null) {
+                            lastError = "第 ${index + 1} 张内容无法解析"
+                            continue
                         }
-                        status = "已填充 ${sheet.subjects.size} 科 请核对"
+                        if (sheet.subjects.isEmpty()) {
+                            lastError = "第 ${index + 1} 张未识别到科目"
+                            continue
+                        }
+                        titleFrom = titleFrom ?: sheet.title
+                        dateFrom = dateFrom ?: sheet.date
+                        for (v in sheet.subjects) {
+                            val name = v.name.take(12)
+                            if (name.isBlank()) continue
+                            val full = v.full ?: SheetParser.defaultFull(name)
+                            val existing = merged[name]
+                            if (existing != null && existing.score.isNotBlank() && v.score != null &&
+                                existing.score.toDoubleOrNull() != v.score
+                            ) conflicts += 1
+                            merged[name] = EditSubject(
+                                subject = name,
+                                score = existing?.score?.takeIf { it.isNotBlank() }
+                                    ?: v.score?.let { ScoreText.of(it) } ?: "",
+                                full = existing?.full?.takeIf { it.isNotBlank() && it != "0" }
+                                    ?: ScoreText.of(full),
+                                converted = existing?.converted?.takeIf { it.isNotBlank() }
+                                    ?: v.converted?.let { ScoreText.of(it) } ?: "",
+                                rank = existing?.rank?.takeIf { it.isNotBlank() }
+                                    ?: v.rank?.toString() ?: "",
+                                total = existing?.total?.takeIf { it.isNotBlank() }
+                                    ?: v.total?.toString() ?: "",
+                                confident = v.score != null && v.full != null,
+                            )
+                        }
+                    }
+                    is Ai.Out.Err -> lastError = r.message
+                }
+            }
+            if (merged.isEmpty()) {
+                status = lastError.ifBlank { "未识别到内容 可改用手动录入" }
+            } else {
+                subjects.clear()
+                subjects.addAll(merged.values)
+                titleFrom?.let { if (title.isBlank()) title = it }
+                dateFrom?.let { d ->
+                    runCatching {
+                        val parts = d.split("-")
+                        if (parts.size >= 3) {
+                            dateText = Dates.fmt(Dates.of(parts[0].toInt(), parts[1].toInt(), parts[2].toInt()))
+                        }
                     }
                 }
-                is Ai.Out.Err -> status = r.message
+                status = "已填充 ${merged.size} 科 请核对" + if (conflicts > 0) " 有重复科目已保留第一张" else ""
             }
             busy = false
         }
