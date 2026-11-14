@@ -1,11 +1,9 @@
 # Aven
 
-![Android CI](https://github.com/Mingqingke/Aven/actions/workflows/android.yml/badge.svg)
-
 仓库 https://github.com/Mingqingke/Aven
 下载 https://github.com/Mingqingke/Aven/releases
 
-AI 学业成长应用 · 面向中国大陆初高中学生
+AI 学业成长应用
 
 记录每一次考试，理解每一次变化，持续优化学习方式。
 
@@ -66,6 +64,14 @@ app/src/main/java/com/aven/app
     ├── screens/    首页、成绩、分析、计划、设置
     └── AppRoot.kt  四栏导航与页面栈
 ```
+
+## 应用锁
+
+- 面容识别界面 深色沉浸布局 分段圆环 成功圆环与对勾路径动画
+- 实际认证由系统 BiometricPrompt 完成 不伪造识别结果
+- 6 位数字密码 PBKDF2 加盐保存 连续错误会短暂等待
+- 默认离开 5 分钟锁定 可选立即 30 秒 1 分钟 5 分钟 15 分钟
+- 锁定状态下不渲染成绩与报告
 
 ## 更新系统
 
