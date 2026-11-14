@@ -173,10 +173,12 @@ $digest
 {"title":null,"date":null,"totalScore":431.5,"subjects":[{"name":"语文","score":91.5,"full":null,"converted":null,"rank":null,"total":null}]}
 规则
 1 score 是原始分 converted 是得分或赋分 rank 是校次或排名 full 未知填 null 不要猜满分
-2 校次行不要当成新科目 合并到同一科目
-3 总分 班级 姓名 时间 不是科目
-4 看不清或不确定的字段填 null 不要编造
-5 只输出 JSON"""
+2 语文 数学 英语 只用原始分 没有赋分 converted 必须填 null
+3 只有政治 历史 地理 物理 化学 生物 可能有得分或赋分
+4 校次行不要当成新科目 合并到同一科目
+5 总分 班级 姓名 时间 不是科目
+6 看不清或不确定的字段填 null 不要编造
+7 只输出 JSON"""
 
     fun parseReport(text: String): AiReport {
         val cleaned = text.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
@@ -249,13 +251,14 @@ $digest
                     }
                     return null
                 }
+                val isMain = name in listOf("语文", "数学", "英语")
                 list += VisionSubject(
                     name = name,
                     score = num("score", "raw", "原始分"),
                     full = num("full", "fullScore", "满分"),
                     rank = int("rank", "校次", "排名"),
                     total = int("total", "totalCount", "参考人数"),
-                    converted = num("converted", "赋分", "得分"),
+                    converted = if (isMain) null else num("converted", "赋分", "得分"),
                 )
             }
             VisionSheet(
