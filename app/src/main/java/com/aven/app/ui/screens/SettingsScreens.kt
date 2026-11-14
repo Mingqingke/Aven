@@ -166,8 +166,6 @@ fun SettingsHomeScreen(onOpen: (com.aven.app.ui.Route) -> Unit, onBack: (() -> U
                 BoxCard(insidePadding = 0.dp) {
                     EntryRow(MiuixIcons.Theme, "外观与卡片", "主题 动效 首页卡片", c.blue, { onOpen(com.aven.app.ui.Route.SettingsAppearance) })
                     Divider(startPadding = 64.dp)
-                    EntryRow(MiuixIcons.Update, "更新与版本", "检查更新 更新源 签名", c.blue, { onOpen(com.aven.app.ui.Route.SettingsUpdate) })
-                    Divider(startPadding = 64.dp)
                     EntryRow(MiuixIcons.Info, "关于 Aven", "版本 作者 开源组件", c.violet, { onOpen(com.aven.app.ui.Route.About) })
                 }
             }
