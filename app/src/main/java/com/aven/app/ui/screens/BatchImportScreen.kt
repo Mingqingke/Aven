@@ -55,13 +55,15 @@ private data class BatchDraft(
  * 每张单独识别 识别后在列表里核对 再一次性保存
  */
 @Composable
-fun BatchImportScreen(paths: List<String>, onBack: () -> Unit, onDone: () -> Unit) {
+fun BatchImportScreen(paths: List<String>, autoSave: Boolean = false, onBack: () -> Unit, onDone: () -> Unit) {
     val c = LocalAven.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var drafts by remember { mutableStateOf<List<BatchDraft>>(emptyList()) }
     var progress by remember { mutableStateOf("准备识别") }
     var saving by remember { mutableStateOf(false) }
+    var autoDone by remember { mutableStateOf(false) }
+    var autoSaved by remember { mutableStateOf(0) }
 
     LaunchedEffect(paths) {
         val list = mutableListOf<BatchDraft>()
@@ -100,6 +102,33 @@ fun BatchImportScreen(paths: List<String>, onBack: () -> Unit, onDone: () -> Uni
             }
             list += draft
             drafts = list.toList()
+        }
+        if (autoSave) {
+            val sorted = list.sortedBy { parseDay(it.dateText) ?: Long.MAX_VALUE }
+            drafts = sorted
+            var saved = 0
+            val existing = Store.exams.value
+            for (d in sorted) {
+                if (d.error.isNotBlank() || d.subjects.isEmpty()) continue
+                val millis = parseDay(d.dateText) ?: continue
+                val title = d.title.ifBlank { "成绩详情" }
+                if (existing.any { Dates.fmt(it.date) == Dates.fmt(millis) && it.title == title }) continue
+                Store.saveExam(
+                    ExamDraft(
+                        title = title,
+                        date = millis,
+                        type = Prefs.defaultExamType.value,
+                        stage = if (Prefs.stage.value == 0) "初中" else "高中",
+                        images = listOf(d.path),
+                        source = "vision",
+                        subjects = d.subjects,
+                    )
+                )
+                saved++
+            }
+            autoSaved = saved
+            autoDone = true
+            AppState.say("已保存 $saved 场 按日期排序")
         }
         progress = ""
     }
@@ -144,17 +173,23 @@ fun BatchImportScreen(paths: List<String>, onBack: () -> Unit, onDone: () -> Uni
                             }
                         } else {
                             Spacer(Modifier.height(10.dp))
-                            LabeledInput("考试名称", draft.title, { v ->
-                                drafts = drafts.toMutableList().also {
-                                    it[index] = draft.copy(title = v)
-                                }
-                            })
-                            Spacer(Modifier.height(10.dp))
-                            LabeledInput("考试日期", draft.dateText, { v ->
-                                drafts = drafts.toMutableList().also {
-                                    it[index] = draft.copy(dateText = v)
-                                }
-                            })
+                            if (autoDone) {
+                                Text(draft.title.ifBlank { "成绩详情" }, fontSize = 13.sp, color = c.ink)
+                                Spacer(Modifier.height(3.dp))
+                                Text(draft.dateText.ifBlank { "日期缺失" }, fontSize = 10.5.sp, color = c.secondary)
+                            } else {
+                                LabeledInput("考试名称", draft.title, { v ->
+                                    drafts = drafts.toMutableList().also {
+                                        it[index] = draft.copy(title = v)
+                                    }
+                                })
+                                Spacer(Modifier.height(10.dp))
+                                LabeledInput("考试日期", draft.dateText, { v ->
+                                    drafts = drafts.toMutableList().also {
+                                        it[index] = draft.copy(dateText = v)
+                                    }
+                                })
+                            }
                             Spacer(Modifier.height(10.dp))
                             val total = draft.subjects.sumOf { it.raw }
                             Text(
@@ -175,18 +210,26 @@ fun BatchImportScreen(paths: List<String>, onBack: () -> Unit, onDone: () -> Uni
                                     )
                                 }
                             }
-                            Divider(startPadding = 0.dp)
-                            Spacer(Modifier.height(6.dp))
-                            SoftButton("移除这一场", {
-                                drafts = drafts.filterIndexed { i, _ -> i != index }
-                            }, color = c.negative)
+                            if (!autoDone) {
+                                Divider(startPadding = 0.dp)
+                                Spacer(Modifier.height(6.dp))
+                                SoftButton("移除这一场", {
+                                    drafts = drafts.filterIndexed { i, _ -> i != index }
+                                }, color = c.negative)
+                            }
                         }
                     }
                 }
             }
 
             item {
-                if (drafts.any { it.error.isBlank() && it.subjects.isNotEmpty() }) {
+                if (autoDone) {
+                    BoxCard(container = c.positiveBg) {
+                        Text("已保存 $autoSaved 场 按日期排序", fontSize = 12.5.sp, color = c.positiveInk)
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    PrimaryButton("完成", onDone, modifier = Modifier.fillMaxWidth())
+                } else if (drafts.any { it.error.isBlank() && it.subjects.isNotEmpty() }) {
                     PrimaryButton(
                         if (saving) "正在保存" else "保存全部",
                         {
