@@ -1,19 +1,19 @@
 {
   "packageName": "com.aven.app",
-  "versionName": "1.0.9",
-  "versionCode": 10,
+  "versionName": "1.1.0",
+  "versionCode": 11,
   "releaseDate": "2026-11-14",
   "changelog": [
-    "云端识别逐张处理 长截图竖切 避免文字过小",
-    "支持 原始分 得分 校次 列表结构",
-    "识别失败显示具体原因",
-    "多图按科目合并 重复保留第一张"
+    "新增批量导入 每张图一场考试",
+    "批量核对页可逐场改名称日期 删除单场",
+    "语数英不再出现赋分",
+    "多场保存后进入成绩与分析"
   ],
-  "apkSize": 24831778,
+  "apkSize": 24848158,
   "downloadUrls": [
-    "https://github.com/Mingqingke/Aven/releases/download/v1.0.9/Aven-v1.0.9.apk"
+    "https://github.com/Mingqingke/Aven/releases/download/v1.1.0/Aven-v1.1.0.apk"
   ],
-  "sha256": "355479fbd012b9a869465dcab43e4609a38cc90b33e95146d1511edb078ad777",
+  "sha256": "83364c1886921c8e6d1043a498526d911d04fa95a9fb1057c55657e1ee9134e0",
   "signingCertificateSha256": "454cb336602bdc2ff2face5303623f3754e852129246f215ea1cea0c825fef87",
   "minSdkVersion": 26,
   "releaseChannel": "stable",
