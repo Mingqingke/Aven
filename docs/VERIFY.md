@@ -38,3 +38,13 @@ versionCode 6 / versionName 1.0.5
 - 进程被杀的恢复、极端数据量下的滚动性能。
 
 这些限制同样写在 README 的「已知限制」中。
+
+
+## 发布
+
+- 仓库 https://github.com/Mingqingke/Aven
+- Release https://github.com/Mingqingke/Aven/releases/tag/v1.0.6
+- 资产 SHA-256 与 GitHub 记录一致 b840653ced1badbe96552fa8b0f670ca9408a8046a4f2a6a87beae27c044da52
+- raw 清单与 jsDelivr 镜像均返回 200
+- GitHub API releases/latest 返回 v1.0.6 与 APK 资产
+- GitHub Actions 首次运行因 setup-android 的 tools 包缺失失败 已改为使用预装 SDK
