@@ -20,6 +20,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: CI properties
+        run: sed -i '/aapt2FromMavenOverride/d' gradle.properties
       - name: Prepare SDK
         run: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
