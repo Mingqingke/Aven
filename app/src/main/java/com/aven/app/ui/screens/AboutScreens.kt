@@ -40,6 +40,7 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.File
 import top.yukonga.miuix.kmp.icon.extended.Info
+import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.icon.extended.Messages
 import top.yukonga.miuix.kmp.icon.extended.Send
 import top.yukonga.miuix.kmp.icon.extended.Share
@@ -139,7 +140,16 @@ fun AboutScreen(onBack: () -> Unit, onOpen: (Route) -> Unit) {
 
             item { SectionLabel("版本") }
             item {
+                val ctx = androidx.compose.ui.platform.LocalContext.current
                 BoxCard(insidePadding = 0.dp) {
+                    EntryRow(
+                        MiuixIcons.Refresh,
+                        "检查更新",
+                        "当前 ${BuildConfig.VERSION_NAME}",
+                        c.blue,
+                        onClick = { com.aven.app.core.update.UpdateRunner.check(ctx) },
+                    )
+                    Divider(startPadding = 64.dp)
                     EntryRow(MiuixIcons.File, "更新日志", "版本 ${BuildConfig.VERSION_NAME} 调整记录", c.blue, onClick = {
                         onOpen(Route.AboutUpdate)
                     })
