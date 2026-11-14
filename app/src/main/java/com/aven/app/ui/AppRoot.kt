@@ -432,12 +432,17 @@ private fun TabNavHost(
                 }
                 entry<Route.AddExam> {
                     PageSurface {
-                        ExamEditorScreen(0L, onBack = { nav.pop() }, onSaved = { nav.pop() })
+                        ExamEditorScreen(
+                            0L,
+                            onBack = { nav.pop() },
+                            onSaved = { nav.pop() },
+                            onBatch = { paths -> nav.pushSafely(Route.BatchImport(paths, autoSave = true)) },
+                        )
                     }
                 }
                 entry<Route.BatchImport> { r ->
                     PageSurface {
-                        BatchImportScreen(r.paths, onBack = { nav.pop() }, onDone = { nav.pop() })
+                        BatchImportScreen(r.paths, autoSave = r.autoSave, onBack = { nav.pop() }, onDone = { nav.pop() })
                     }
                 }
                 entry<Route.EditExam> { r ->
